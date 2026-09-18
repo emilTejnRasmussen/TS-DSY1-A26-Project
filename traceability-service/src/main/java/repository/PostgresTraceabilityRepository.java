@@ -69,9 +69,7 @@ public class PostgresTraceabilityRepository implements TraceabilityRepository
             {
                 while (resultSet.next())
                 {
-                    productIds.add(
-                            resultSet.getInt("product_id")
-                    );
+                    productIds.add(resultSet.getInt("product_id"));
                 }
             }
         }

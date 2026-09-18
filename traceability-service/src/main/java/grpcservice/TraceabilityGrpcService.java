@@ -25,15 +25,12 @@ public class TraceabilityGrpcService extends TraceabilityServiceGrpc.Traceabilit
     {
         try
         {
-            List<String> registrationNumbers =
-                    repository.findAnimalRegistrationNumbersByProductId(
-                            request.getProductId()
-                    );
+            List<String> registrationNumbers = repository
+                    .findAnimalRegistrationNumbersByProductId(request.getProductId());
 
-            AnimalRegistrationsResponse response =
-                    AnimalRegistrationsResponse.newBuilder()
-                            .addAllRegistrationNumbers(registrationNumbers)
-                            .build();
+            AnimalRegistrationsResponse response = AnimalRegistrationsResponse.newBuilder()
+                    .addAllRegistrationNumbers(registrationNumbers)
+                    .build();
 
             responseObserver.onNext(response);
             responseObserver.onCompleted();
@@ -55,15 +52,12 @@ public class TraceabilityGrpcService extends TraceabilityServiceGrpc.Traceabilit
     {
         try
         {
-            List<Integer> productIds =
-                    repository.findProductIdsByAnimalRegistrationNumber(
-                            request.getRegistrationNumber()
-                    );
+            List<Integer> productIds = repository
+                    .findProductIdsByAnimalRegistrationNumber(request.getRegistrationNumber());
 
-            ProductsResponse response =
-                    ProductsResponse.newBuilder()
-                            .addAllProductIds(productIds)
-                            .build();
+            ProductsResponse response = ProductsResponse.newBuilder()
+                    .addAllProductIds(productIds)
+                    .build();
 
             responseObserver.onNext(response);
             responseObserver.onCompleted();
