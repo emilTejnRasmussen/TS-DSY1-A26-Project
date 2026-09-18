@@ -41,4 +41,29 @@ public class TraceabilityGrpcService extends TraceabilityServiceGrpc.Traceabilit
             responseObserver.onError(e);
         }
     }
+
+    @Override
+    public void getProductsForAnimal(
+            AnimalRequest request,
+            StreamObserver<ProductsResponse> responseObserver)
+    {
+        try
+        {
+            List<Integer> productIds =
+                    repository.findProductIdsByAnimalRegistrationNumber(
+                            request.getRegistrationNumber()
+                    );
+
+            ProductsResponse response =
+                    ProductsResponse.newBuilder()
+                            .addAllProductIds(productIds)
+                            .build();
+
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        } catch (SQLException e)
+        {
+            responseObserver.onError(e);
+        }
+    }
 }
