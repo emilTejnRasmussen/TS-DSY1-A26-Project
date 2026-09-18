@@ -2,6 +2,7 @@ package grpcservice;
 
 
 import grpc.*;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import repository.TraceabilityRepository;
 
@@ -38,7 +39,12 @@ public class TraceabilityGrpcService extends TraceabilityServiceGrpc.Traceabilit
             responseObserver.onCompleted();
         } catch (SQLException e)
         {
-            responseObserver.onError(e);
+            responseObserver.onError(
+                    Status.INTERNAL
+                            .withDescription("Database error")
+                            .withCause(e)
+                            .asRuntimeException()
+            );
         }
     }
 
@@ -63,7 +69,12 @@ public class TraceabilityGrpcService extends TraceabilityServiceGrpc.Traceabilit
             responseObserver.onCompleted();
         } catch (SQLException e)
         {
-            responseObserver.onError(e);
+            responseObserver.onError(
+                    Status.INTERNAL
+                            .withDescription("Database error")
+                            .withCause(e)
+                            .asRuntimeException()
+            );
         }
     }
 }
