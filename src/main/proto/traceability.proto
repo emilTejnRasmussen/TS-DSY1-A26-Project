@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "grpc";
+option java_outer_classname = "TraceabilityProto";
+
+service TraceabilityService {
+
+  rpc GetAnimalsForProduct(ProductRequest)
+      returns (AnimalRegistrationsResponse);
+
+  rpc GetProductsForAnimal(AnimalRequest)
+      returns (ProductsResponse);
+}
+
+message ProductRequest {
+  int32 product_id = 1;
+}
+
+message AnimalRequest {
+  string registration_number = 1;
+}
+
+message AnimalRegistrationsResponse {
+  repeated string registration_numbers = 1;
+}
+
+message ProductsResponse {
+  repeated int32 product_ids = 1;
+}
