@@ -55,6 +55,13 @@
             <version>5.13.4</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- Read env props -->
+        <dependency>
+            <groupId>io.github.cdimascio</groupId>
+            <artifactId>dotenv-java</artifactId>
+            <version>3.2.0</version>
+        </dependency>
     </dependencies>
 
 
