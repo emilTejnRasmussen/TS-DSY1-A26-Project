@@ -1,7 +1,7 @@
-INSERT INTO animal (registration_number, weight)
-VALUES ('A-1001', 120.5),
-       ('A-1002', 135.2),
-       ('A-1003', 110.8);
+INSERT INTO animal (registration_number, weight, arrival_time)
+VALUES ('A-1001', 120.5, '2026-09-18 08:00:00'),
+       ('A-1002', 135.2, '2026-09-18 08:15:00'),
+       ('A-1003', 110.8, '2026-09-18 08:30:00');
 
 
 INSERT INTO part_type (name)
@@ -52,12 +52,22 @@ VALUES ((SELECT animal_id FROM animal WHERE registration_number = 'A-1003'),
         7.2);
 
 
+INSERT INTO product_type (name)
+VALUES ('Mixed Parts'),
+       ('Single Tray Product');
+
+
 -- Create two products
 
-INSERT INTO product DEFAULT
-VALUES;
-INSERT INTO product DEFAULT
-VALUES;
+INSERT INTO product (product_type_id, packaged_at)
+VALUES ((SELECT product_type_id
+         FROM product_type
+         WHERE name = 'Mixed Parts'),
+        '2026-09-18 10:00:00'),
+       ((SELECT product_type_id
+         FROM product_type
+         WHERE name = 'Single Tray Product'),
+        '2026-09-18 10:30:00');
 
 
 -- Product 1 uses trays 1, 2 and 3
