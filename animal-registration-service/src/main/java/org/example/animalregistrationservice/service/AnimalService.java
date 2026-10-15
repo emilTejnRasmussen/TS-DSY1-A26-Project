@@ -1,10 +1,13 @@
 package org.example.animalregistrationservice.service;
 
-import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.annotation.Transactional;
 import org.example.animalregistrationservice.dto.AnimalDto;
 import org.example.animalregistrationservice.dto.RegisterAnimalDto;
 import org.example.animalregistrationservice.enitity.Animal;
 import org.example.animalregistrationservice.enitity.Farm;
+import org.example.animalregistrationservice.exception.AnimalNotFoundException;
 import org.example.animalregistrationservice.exception.FarmNotFoundException;
 import org.example.animalregistrationservice.mapper.AnimalMapper;
 import org.example.animalregistrationservice.repository.AnimalRepository;
@@ -12,6 +15,7 @@ import org.example.animalregistrationservice.repository.FarmRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 public class AnimalService
@@ -28,7 +32,8 @@ public class AnimalService
     }
 
     @Transactional
-    public AnimalDto registerAnimal(RegisterAnimalDto request) {
+    public AnimalDto registerAnimal(RegisterAnimalDto request)
+    {
         Farm farm = farmRepository.findById(request.farmId())
                 .orElseThrow(() -> new FarmNotFoundException(request.farmId()));
 
@@ -40,5 +45,39 @@ public class AnimalService
         Animal savedAnimal = animalRepository.save(animal);
 
         return animalMapper.toDto(savedAnimal);
+    }
+
+    @Transactional(readOnly = true)
+    public AnimalDto getAnimal(String registrationNumber)
+    {
+        Animal animal = animalRepository.findById(registrationNumber)
+                .orElseThrow(() -> new AnimalNotFoundException(registrationNumber));
+
+        return animalMapper.toDto(animal);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<AnimalDto> getAnimals(LocalDate arrivalDate, Long farmId, Pageable pageable)
+    {
+        Page<Animal> animals;
+
+        if (arrivalDate != null && farmId != null)
+        {
+            animals = animalRepository.findByArrivalDateAndOriginId(arrivalDate, farmId, pageable);
+
+        } else if (arrivalDate != null)
+        {
+            animals = animalRepository.findByArrivalDate(arrivalDate, pageable);
+
+        } else if (farmId != null)
+        {
+            animals = animalRepository.findByOriginId(farmId, pageable);
+
+        } else
+        {
+            animals = animalRepository.findAll(pageable);
+        }
+
+        return animals.map(animalMapper::toDto);
     }
 }
