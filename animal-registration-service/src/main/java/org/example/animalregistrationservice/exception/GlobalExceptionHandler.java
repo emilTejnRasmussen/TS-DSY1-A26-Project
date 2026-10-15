@@ -1,15 +1,15 @@
 package org.example.animalregistrationservice.exception;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ProblemDetail;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.lang.Nullable;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.util.List;
 import java.util.Map;
@@ -17,19 +17,29 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
-public class GlobalExceptionHandler
+public class GlobalExceptionHandler extends ResponseEntityExceptionHandler
 {
 
-    @ExceptionHandler({FarmNotFoundException.class, AnimalNotFoundException.class})
+    @ExceptionHandler({
+            FarmNotFoundException.class,
+            AnimalNotFoundException.class
+    })
     public ResponseEntity<ProblemDetail> handleNotFound(RuntimeException ex)
     {
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND,
+                ex.getMessage()
+        );
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
     }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ProblemDetail> handleValidation(MethodArgumentNotValidException ex)
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(
+            MethodArgumentNotValidException ex,
+            HttpHeaders headers,
+            HttpStatusCode status,
+            WebRequest request)
     {
 
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(
@@ -39,19 +49,30 @@ public class GlobalExceptionHandler
 
         problem.setTitle("Invalid request data");
 
-        Map<String, List<String>> errors = ex.getBindingResult().getFieldErrors().stream()
-                .collect(Collectors.groupingBy(FieldError::getField, Collectors.mapping(
-                        FieldError::getDefaultMessage,
-                        Collectors.toList()
-                )));
+        Map<String, List<String>> errors = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .collect(Collectors.groupingBy(
+                        FieldError::getField,
+                        Collectors.mapping(
+                                FieldError::getDefaultMessage,
+                                Collectors.toList()
+                        )
+                ));
 
         problem.setProperty("errors", errors);
 
-        return ResponseEntity.badRequest().body(problem);
+        return handleExceptionInternal(
+                ex, problem, headers, HttpStatus.BAD_REQUEST, request
+        );
     }
 
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ProblemDetail> handleInvalidRequest(HttpMessageNotReadableException ex)
+    @Override
+    protected ResponseEntity<Object> handleHttpMessageNotReadable(
+            HttpMessageNotReadableException ex,
+            HttpHeaders headers,
+            HttpStatusCode status,
+            WebRequest request)
     {
 
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(
@@ -61,7 +82,9 @@ public class GlobalExceptionHandler
 
         problem.setTitle("Invalid request body");
 
-        return ResponseEntity.badRequest().body(problem);
+        return handleExceptionInternal(
+                ex, problem, headers, HttpStatus.BAD_REQUEST, request
+        );
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
@@ -82,7 +105,6 @@ public class GlobalExceptionHandler
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ProblemDetail> handleUnexpectedException(Exception ex)
     {
-
         log.error("Unexpected error occurred", ex);
 
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(
@@ -92,6 +114,7 @@ public class GlobalExceptionHandler
 
         problem.setTitle("Internal server error");
 
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(problem);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(problem);
     }
 }
