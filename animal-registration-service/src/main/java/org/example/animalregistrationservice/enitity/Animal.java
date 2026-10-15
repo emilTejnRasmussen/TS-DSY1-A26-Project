@@ -20,6 +20,10 @@ public class Animal
     @Column(nullable = false, updatable = false)
     private String registrationNumber;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AnimalType type;
+
     @Column(nullable = false)
     private LocalDate arrivalDate;
 

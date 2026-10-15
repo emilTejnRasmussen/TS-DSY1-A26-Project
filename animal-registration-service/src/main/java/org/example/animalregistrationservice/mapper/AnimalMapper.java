@@ -14,6 +14,7 @@ public class AnimalMapper
     {
         return new AnimalDto(
                 animal.getRegistrationNumber(),
+                animal.getType(),
                 animal.getArrivalDate(),
                 animal.getWeight(),
                 animal.getOrigin().getId(),
@@ -24,8 +25,10 @@ public class AnimalMapper
     public Animal fromRegisterRequest(RegisterAnimalDto request)
     {
         Animal animal = new Animal();
-        animal.setArrivalDate(LocalDate.now());
+
+        animal.setType(request.type());
         animal.setWeight(request.weight());
+        animal.setArrivalDate(LocalDate.now());
 
         return animal;
     }
