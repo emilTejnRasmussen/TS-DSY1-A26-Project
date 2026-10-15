@@ -2,6 +2,7 @@ package org.example.animalregistrationservice.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.animalregistrationservice.dto.farm.CreateFarmDto;
 import org.example.animalregistrationservice.dto.farm.FarmDto;
 import org.example.animalregistrationservice.service.FarmService;
@@ -14,6 +15,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 
+@Slf4j
 @RestController
 @RequestMapping("/farms")
 @RequiredArgsConstructor
@@ -28,6 +30,12 @@ public class FarmController
     {
 
         FarmDto farm = farmService.createFarm(request);
+
+        log.info(
+                "Registered farm: id={}, name={}",
+                farm.id(),
+                farm.name()
+        );
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()

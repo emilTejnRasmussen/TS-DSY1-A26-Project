@@ -3,6 +3,9 @@
 .env.*
 !.env.example
 
+# Logs
+logs/
+
 # Maven / Java
 **/target/
 *.class
