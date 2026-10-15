@@ -44,14 +44,14 @@ HELP.md
 .DS_Store
 Thumbs.db
 
-# Frontend (Vite / TypeScript)
+# Frontend (React / Vite / TypeScript)
 frontend/**/node_modules/
 frontend/**/dist/
 frontend/**/dist-ssr/
 frontend/**/.vite/
 frontend/**/.env
-frontend/**/.env.local
-frontend/**/.env.*.local
+frontend/**/.env.*
+!frontend/**/.env.example
 
 # Logs
 frontend/**/*.log
