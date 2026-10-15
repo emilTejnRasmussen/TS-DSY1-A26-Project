@@ -1,4 +1,4 @@
-package org.example.animalregistrationservice.dto;
+package org.example.animalregistrationservice.dto.animal;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

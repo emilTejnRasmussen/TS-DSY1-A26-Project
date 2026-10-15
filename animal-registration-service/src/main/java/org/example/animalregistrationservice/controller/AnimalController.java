@@ -2,8 +2,8 @@ package org.example.animalregistrationservice.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.example.animalregistrationservice.dto.AnimalDto;
-import org.example.animalregistrationservice.dto.RegisterAnimalDto;
+import org.example.animalregistrationservice.dto.animal.AnimalDto;
+import org.example.animalregistrationservice.dto.animal.RegisterAnimalDto;
 import org.example.animalregistrationservice.service.AnimalService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,7 +15,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.time.LocalDate;
-import java.util.List;
 
 @Controller
 @RequestMapping("/animals")

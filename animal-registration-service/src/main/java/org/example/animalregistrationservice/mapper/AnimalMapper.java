@@ -1,7 +1,7 @@
 package org.example.animalregistrationservice.mapper;
 
-import org.example.animalregistrationservice.dto.AnimalDto;
-import org.example.animalregistrationservice.dto.RegisterAnimalDto;
+import org.example.animalregistrationservice.dto.animal.AnimalDto;
+import org.example.animalregistrationservice.dto.animal.RegisterAnimalDto;
 import org.example.animalregistrationservice.enitity.Animal;
 import org.springframework.stereotype.Component;
 
