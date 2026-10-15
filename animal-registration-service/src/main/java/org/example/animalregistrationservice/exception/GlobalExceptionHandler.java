@@ -9,6 +9,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.List;
 import java.util.Map;
@@ -40,9 +41,9 @@ public class GlobalExceptionHandler
 
         Map<String, List<String>> errors = ex.getBindingResult().getFieldErrors().stream()
                 .collect(Collectors.groupingBy(FieldError::getField, Collectors.mapping(
-                                FieldError::getDefaultMessage,
-                                Collectors.toList()
-                        )));
+                        FieldError::getDefaultMessage,
+                        Collectors.toList()
+                )));
 
         problem.setProperty("errors", errors);
 
@@ -50,7 +51,8 @@ public class GlobalExceptionHandler
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ProblemDetail> handleInvalidRequest(HttpMessageNotReadableException ex) {
+    public ResponseEntity<ProblemDetail> handleInvalidRequest(HttpMessageNotReadableException ex)
+    {
 
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(
                 HttpStatus.BAD_REQUEST,
@@ -62,10 +64,24 @@ public class GlobalExceptionHandler
         return ResponseEntity.badRequest().body(problem);
     }
 
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ProblemDetail> handleTypeMismatch(
+            MethodArgumentTypeMismatchException ex)
+    {
 
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                "Invalid value for parameter '" + ex.getName() + "'"
+        );
+
+        problem.setTitle("Invalid request parameter");
+
+        return ResponseEntity.badRequest().body(problem);
+    }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ProblemDetail> handleUnexpectedException(Exception ex) {
+    public ResponseEntity<ProblemDetail> handleUnexpectedException(Exception ex)
+    {
 
         log.error("Unexpected error occurred", ex);
 
