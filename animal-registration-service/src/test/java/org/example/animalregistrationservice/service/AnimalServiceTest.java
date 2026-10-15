@@ -1,15 +1,20 @@
+
 package org.example.animalregistrationservice.service;
 
 import org.example.animalregistrationservice.dto.animal.AnimalDto;
 import org.example.animalregistrationservice.dto.animal.RegisterAnimalDto;
-import org.example.animalregistrationservice.enitity.*;
+import org.example.animalregistrationservice.enitity.Animal;
+import org.example.animalregistrationservice.enitity.AnimalType;
+import org.example.animalregistrationservice.enitity.Farm;
 import org.example.animalregistrationservice.exception.AnimalNotFoundException;
 import org.example.animalregistrationservice.exception.FarmNotFoundException;
 import org.example.animalregistrationservice.mapper.AnimalMapper;
 import org.example.animalregistrationservice.repository.AnimalRepository;
 import org.example.animalregistrationservice.repository.FarmRepository;
-
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -20,6 +25,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,6 +37,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("Animal Service")
 class AnimalServiceTest
 {
+    private static final LocalDateTime REGISTERED_AT =
+            LocalDateTime.of(2026, 10, 15, 14, 30);
 
     @Mock
     private FarmRepository farmRepository;
@@ -61,8 +69,9 @@ class AnimalServiceTest
         animal.generateRegistrationNumber();
         animal.setType(type);
         animal.setWeight(BigDecimal.valueOf(weight));
-        animal.setArrivalDate(LocalDate.now());
+        animal.setRegisteredAt(REGISTERED_AT);
         animal.setOrigin(farm);
+
         return animal;
     }
 
@@ -70,7 +79,6 @@ class AnimalServiceTest
     @DisplayName("Register Animal")
     class RegisterAnimalTests
     {
-
         @Test
         @DisplayName("Should register animal successfully")
         void shouldRegisterAnimal()
@@ -87,7 +95,11 @@ class AnimalServiceTest
             when(animalRepository.save(any(Animal.class)))
                     .thenAnswer(invocation -> invocation.getArgument(0));
 
+            LocalDateTime before = LocalDateTime.now();
+
             AnimalDto result = animalService.registerAnimal(request);
+
+            LocalDateTime after = LocalDateTime.now();
 
             assertAll("Registered animal",
                     () -> assertNotNull(result.registrationNumber()),
@@ -96,7 +108,9 @@ class AnimalServiceTest
                     () -> assertEquals(BigDecimal.valueOf(245.5), result.weight()),
                     () -> assertEquals(1L, result.farmId()),
                     () -> assertEquals("Sunds Farm", result.farmName()),
-                    () -> assertEquals(LocalDate.now(), result.arrivalDate()),
+                    () -> assertNotNull(result.registeredAt()),
+                    () -> assertFalse(result.registeredAt().isBefore(before)),
+                    () -> assertFalse(result.registeredAt().isAfter(after)),
                     () -> verify(animalRepository).save(any(Animal.class))
             );
         }
@@ -157,7 +171,6 @@ class AnimalServiceTest
     @DisplayName("Get Animal")
     class GetAnimalTests
     {
-
         @Test
         @DisplayName("Should return existing animal")
         void shouldReturnAnimal()
@@ -174,6 +187,7 @@ class AnimalServiceTest
                     () -> assertEquals(registrationNumber, result.registrationNumber()),
                     () -> assertEquals(AnimalType.COW, result.type()),
                     () -> assertEquals(BigDecimal.valueOf(500.0), result.weight()),
+                    () -> assertEquals(REGISTERED_AT, result.registeredAt()),
                     () -> assertEquals(1L, result.farmId()),
                     () -> verify(animalRepository).findById(registrationNumber)
             );
@@ -200,7 +214,6 @@ class AnimalServiceTest
     @DisplayName("Get Animals")
     class GetAnimalsTests
     {
-
         private Pageable pageable;
 
         @BeforeEach
@@ -275,23 +288,30 @@ class AnimalServiceTest
         }
 
         @Test
-        @DisplayName("Should filter by arrival date")
-        void shouldFilterByArrivalDate()
+        @DisplayName("Should filter by registered date")
+        void shouldFilterByRegisteredDate()
         {
-            LocalDate date = LocalDate.now();
+            LocalDate date = REGISTERED_AT.toLocalDate();
+            LocalDateTime start = date.atStartOfDay();
+            LocalDateTime end = date.plusDays(1).atStartOfDay();
+
             Animal animal = createAnimal(AnimalType.PIG, 200);
 
-            when(animalRepository.findByArrivalDate(date, pageable))
-                    .thenReturn(new PageImpl<>(List.of(animal), pageable, 1));
+            when(animalRepository.findByRegisteredAtGreaterThanEqualAndRegisteredAtLessThan(
+                    start, end, pageable
+            )).thenReturn(new PageImpl<>(List.of(animal), pageable, 1));
 
             Page<AnimalDto> result = animalService.getAnimals(
                     date, null, pageable
             );
 
-            assertAll(
+            assertAll("Registered date filter",
                     () -> assertEquals(1, result.getTotalElements()),
-                    () -> assertEquals(date, result.getContent().getFirst().arrivalDate()),
-                    () -> verify(animalRepository).findByArrivalDate(date, pageable)
+                    () -> assertEquals(REGISTERED_AT, result.getContent().getFirst().registeredAt()),
+                    () -> verify(animalRepository)
+                            .findByRegisteredAtGreaterThanEqualAndRegisteredAtLessThan(
+                                    start, end, pageable
+                            )
             );
         }
 
@@ -308,7 +328,7 @@ class AnimalServiceTest
                     null, 1L, pageable
             );
 
-            assertAll(
+            assertAll("Farm filter",
                     () -> assertEquals(1, result.getTotalElements()),
                     () -> assertEquals(1L, result.getContent().getFirst().farmId()),
                     () -> verify(animalRepository).findByOriginId(1L, pageable)
@@ -316,25 +336,31 @@ class AnimalServiceTest
         }
 
         @Test
-        @DisplayName("Should filter by date and farm")
+        @DisplayName("Should filter by registered date and farm")
         void shouldFilterByDateAndFarm()
         {
-            LocalDate date = LocalDate.now();
+            LocalDate date = REGISTERED_AT.toLocalDate();
+            LocalDateTime start = date.atStartOfDay();
+            LocalDateTime end = date.plusDays(1).atStartOfDay();
+
             Animal animal = createAnimal(AnimalType.PIG, 200);
 
-            when(animalRepository.findByArrivalDateAndOriginId(date, 1L, pageable))
-                    .thenReturn(new PageImpl<>(List.of(animal), pageable, 1));
+            when(animalRepository.findByRegisteredAtGreaterThanEqualAndRegisteredAtLessThanAndOriginId(
+                    start, end, 1L, pageable
+            )).thenReturn(new PageImpl<>(List.of(animal), pageable, 1));
 
             Page<AnimalDto> result = animalService.getAnimals(
                     date, 1L, pageable
             );
 
-            assertAll(
+            assertAll("Registered date and farm filter",
                     () -> assertEquals(1, result.getTotalElements()),
-                    () -> assertEquals(date, result.getContent().getFirst().arrivalDate()),
+                    () -> assertEquals(REGISTERED_AT, result.getContent().getFirst().registeredAt()),
                     () -> assertEquals(1L, result.getContent().getFirst().farmId()),
                     () -> verify(animalRepository)
-                            .findByArrivalDateAndOriginId(date, 1L, pageable)
+                            .findByRegisteredAtGreaterThanEqualAndRegisteredAtLessThanAndOriginId(
+                                    start, end, 1L, pageable
+                            )
             );
         }
 

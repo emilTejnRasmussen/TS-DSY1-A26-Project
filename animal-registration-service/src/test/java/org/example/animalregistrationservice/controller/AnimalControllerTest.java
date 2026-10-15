@@ -1,11 +1,12 @@
+
 package org.example.animalregistrationservice.controller;
 
+import com.jayway.jsonpath.JsonPath;
 import org.example.animalregistrationservice.dto.animal.AnimalDto;
 import org.example.animalregistrationservice.enitity.AnimalType;
 import org.example.animalregistrationservice.exception.AnimalNotFoundException;
 import org.example.animalregistrationservice.exception.FarmNotFoundException;
 import org.example.animalregistrationservice.service.AnimalService;
-
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -20,6 +21,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -32,8 +34,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @DisplayName("Animal Controller")
 class AnimalControllerTest
 {
-
     private static final String BASE_URL = "/api/v1/animals";
+    private static final LocalDateTime REGISTERED_AT =
+            LocalDateTime.of(2026, 10, 15, 14, 30);
 
     @Autowired
     private MockMvc mockMvc;
@@ -49,7 +52,7 @@ class AnimalControllerTest
         animal = new AnimalDto(
                 "DK-2026-test123",
                 AnimalType.PIG,
-                LocalDate.of(2026, 10, 15),
+                REGISTERED_AT,
                 BigDecimal.valueOf(245.5),
                 1L,
                 "Sunds Farm"
@@ -60,7 +63,6 @@ class AnimalControllerTest
     @DisplayName("Register Animal")
     class RegisterAnimalTests
     {
-
         @Test
         @DisplayName("Should register animal successfully")
         void shouldRegisterAnimal() throws Exception
@@ -82,15 +84,14 @@ class AnimalControllerTest
                             .content(body))
                     .andReturn();
 
+            String json = result.getResponse().getContentAsString();
+
             assertAll("Registered animal",
                     () -> assertEquals(201, result.getResponse().getStatus()),
-                    () -> assertEquals(
-                            "PIG",
-                            com.jayway.jsonpath.JsonPath.read(
-                                    result.getResponse().getContentAsString(),
-                                    "$.type"
-                            )
-                    ),
+                    () -> assertEquals("PIG",
+                            JsonPath.read(json, "$.type")),
+                    () -> assertEquals("2026-10-15T14:30:00",
+                            JsonPath.read(json, "$.registeredAt")),
                     () -> assertTrue(
                             Objects.requireNonNull(result.getResponse().getHeader("Location"))
                                     .endsWith("/animals/DK-2026-test123")
@@ -122,9 +123,9 @@ class AnimalControllerTest
             assertAll("Validation errors",
                     () -> assertEquals(400, result.getResponse().getStatus()),
                     () -> assertEquals("Invalid request data",
-                            com.jayway.jsonpath.JsonPath.read(json, "$.title")),
+                            JsonPath.read(json, "$.title")),
                     () -> assertEquals("Validation failed",
-                            com.jayway.jsonpath.JsonPath.read(json, "$.detail")),
+                            JsonPath.read(json, "$.detail")),
                     () -> assertTrue(json.contains("weight")),
                     () -> assertTrue(json.contains("farmId")),
                     () -> assertTrue(json.contains("type")),
@@ -180,7 +181,7 @@ class AnimalControllerTest
             assertAll(
                     () -> assertEquals(404, result.getResponse().getStatus()),
                     () -> assertEquals("Not Found",
-                            com.jayway.jsonpath.JsonPath.read(
+                            JsonPath.read(
                                     result.getResponse().getContentAsString(),
                                     "$.title"
                             ))
@@ -213,7 +214,7 @@ class AnimalControllerTest
             assertAll(
                     () -> assertEquals(500, result.getResponse().getStatus()),
                     () -> assertEquals("Internal server error",
-                            com.jayway.jsonpath.JsonPath.read(json, "$.title")),
+                            JsonPath.read(json, "$.title")),
                     () -> assertFalse(json.contains("Database unavailable"))
             );
         }
@@ -223,7 +224,6 @@ class AnimalControllerTest
     @DisplayName("Get Animal")
     class GetAnimalTests
     {
-
         @Test
         @DisplayName("Should return existing animal")
         void shouldReturnAnimal() throws Exception
@@ -238,12 +238,14 @@ class AnimalControllerTest
 
             String json = result.getResponse().getContentAsString();
 
-            assertAll(
+            assertAll("Retrieved animal",
                     () -> assertEquals(200, result.getResponse().getStatus()),
                     () -> assertEquals("DK-2026-test123",
-                            com.jayway.jsonpath.JsonPath.read(json, "$.registrationNumber")),
+                            JsonPath.read(json, "$.registrationNumber")),
                     () -> assertEquals("PIG",
-                            com.jayway.jsonpath.JsonPath.read(json, "$.type")),
+                            JsonPath.read(json, "$.type")),
+                    () -> assertEquals("2026-10-15T14:30:00",
+                            JsonPath.read(json, "$.registeredAt")),
                     () -> verify(animalService).getAnimal("DK-2026-test123")
             );
         }
@@ -263,7 +265,7 @@ class AnimalControllerTest
             assertAll(
                     () -> assertEquals(404, result.getResponse().getStatus()),
                     () -> assertEquals("Not Found",
-                            com.jayway.jsonpath.JsonPath.read(
+                            JsonPath.read(
                                     result.getResponse().getContentAsString(),
                                     "$.title"
                             ))
@@ -275,7 +277,6 @@ class AnimalControllerTest
     @DisplayName("Get Animals")
     class GetAnimalsTests
     {
-
         @Test
         @DisplayName("Should return empty page")
         void shouldReturnEmptyPage() throws Exception
@@ -292,7 +293,7 @@ class AnimalControllerTest
             assertAll(
                     () -> assertEquals(200, result.getResponse().getStatus()),
                     () -> assertEquals(0,
-                            ((Number) com.jayway.jsonpath.JsonPath.read(
+                            ((Number) JsonPath.read(
                                     result.getResponse().getContentAsString(),
                                     "$.totalElements"
                             )).intValue())
@@ -307,7 +308,7 @@ class AnimalControllerTest
 
             Page<AnimalDto> page = new PageImpl<>(
                     List.of(animal),
-                    PageRequest.of(1, 5, Sort.by("arrivalDate").descending()),
+                    PageRequest.of(1, 5, Sort.by("registeredAt").descending()),
                     10
             );
 
@@ -317,14 +318,14 @@ class AnimalControllerTest
 
             MvcResult result = mockMvc.perform(get(BASE_URL)
                             .servletPath("/api/v1")
-                            .param("arrivalDate", "2026-10-15")
+                            .param("registeredDate", "2026-10-15")
                             .param("farmId", "1")
                             .param("page", "1")
                             .param("size", "5")
-                            .param("sort", "arrivalDate,desc"))
+                            .param("sort", "registeredAt,desc"))
                     .andReturn();
 
-            assertAll(
+            assertAll("Filters and pagination",
                     () -> assertEquals(200, result.getResponse().getStatus()),
                     () -> verify(animalService).getAnimals(
                             eq(date),
@@ -332,8 +333,11 @@ class AnimalControllerTest
                             argThat(p ->
                                     p.getPageNumber() == 1
                                             && p.getPageSize() == 5
-                                            && p.getSort().getOrderFor("arrivalDate")
-                                            .getDirection() == Sort.Direction.DESC
+                                            && Sort.Direction.DESC.equals(
+                                            p.getSort()
+                                                    .getOrderFor("registeredAt")
+                                                    .getDirection()
+                                    )
                             )
                     )
             );

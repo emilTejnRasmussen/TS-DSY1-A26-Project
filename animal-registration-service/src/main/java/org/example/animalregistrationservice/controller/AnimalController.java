@@ -1,3 +1,4 @@
+
 package org.example.animalregistrationservice.controller;
 
 import jakarta.validation.Valid;
@@ -8,9 +9,9 @@ import org.example.animalregistrationservice.dto.animal.RegisterAnimalDto;
 import org.example.animalregistrationservice.service.AnimalService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -18,7 +19,7 @@ import java.net.URI;
 import java.time.LocalDate;
 
 @Slf4j
-@Controller
+@RestController
 @RequestMapping("/animals")
 @RequiredArgsConstructor
 public class AnimalController
@@ -26,7 +27,8 @@ public class AnimalController
     private final AnimalService animalService;
 
     @PostMapping
-    public ResponseEntity<AnimalDto> register(@Valid @RequestBody RegisterAnimalDto request)
+    public ResponseEntity<AnimalDto> register(
+            @Valid @RequestBody RegisterAnimalDto request)
     {
         AnimalDto animal = animalService.registerAnimal(request);
 
@@ -47,7 +49,8 @@ public class AnimalController
     }
 
     @GetMapping("/{registrationNumber}")
-    public ResponseEntity<AnimalDto> getAnimal(@PathVariable String registrationNumber)
+    public ResponseEntity<AnimalDto> getAnimal(
+            @PathVariable String registrationNumber)
     {
         AnimalDto animal = animalService.getAnimal(registrationNumber);
 
@@ -55,12 +58,16 @@ public class AnimalController
     }
 
     @GetMapping
-    public ResponseEntity<Page<AnimalDto>> getAnimals(
-            @RequestParam(required = false) LocalDate arrivalDate,
+    public Page<AnimalDto> getAnimals(
+            @RequestParam(required = false) LocalDate registeredDate,
             @RequestParam(required = false) Long farmId,
-            @PageableDefault(sort = "registrationNumber") Pageable pageable
-    )
+            @PageableDefault(
+                    size = 20,
+                    sort = "registeredAt",
+                    direction = Sort.Direction.DESC
+            )
+            Pageable pageable)
     {
-        return ResponseEntity.ok(animalService.getAnimals(arrivalDate, farmId, pageable));
+        return animalService.getAnimals(registeredDate, farmId, pageable);
     }
 }

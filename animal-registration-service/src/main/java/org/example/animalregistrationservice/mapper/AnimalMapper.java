@@ -5,7 +5,7 @@ import org.example.animalregistrationservice.dto.animal.RegisterAnimalDto;
 import org.example.animalregistrationservice.enitity.Animal;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Component
 public class AnimalMapper
@@ -15,7 +15,7 @@ public class AnimalMapper
         return new AnimalDto(
                 animal.getRegistrationNumber(),
                 animal.getType(),
-                animal.getArrivalDate(),
+                animal.getRegisteredAt(),
                 animal.getWeight(),
                 animal.getOrigin().getId(),
                 animal.getOrigin().getName()
@@ -28,7 +28,7 @@ public class AnimalMapper
 
         animal.setType(request.type());
         animal.setWeight(request.weight());
-        animal.setArrivalDate(LocalDate.now());
+        animal.setRegisteredAt(LocalDateTime.now());
 
         return animal;
     }

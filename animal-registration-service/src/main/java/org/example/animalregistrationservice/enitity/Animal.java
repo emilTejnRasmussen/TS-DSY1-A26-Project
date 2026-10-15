@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Year;
 import java.util.UUID;
 
@@ -25,7 +25,7 @@ public class Animal
     private AnimalType type;
 
     @Column(nullable = false)
-    private LocalDate arrivalDate;
+    private LocalDateTime registeredAt;
 
     @Column(nullable = false)
     private BigDecimal weight;

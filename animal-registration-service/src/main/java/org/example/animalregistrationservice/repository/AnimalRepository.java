@@ -6,13 +6,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Repository
 public interface AnimalRepository extends JpaRepository<Animal, String>
 {
-    Page<Animal> findByArrivalDate(
-            LocalDate arrivalDate,
+    Page<Animal> findByRegisteredAtGreaterThanEqualAndRegisteredAtLessThan(
+            LocalDateTime start,
+            LocalDateTime end,
             Pageable pageable
     );
 
@@ -21,8 +22,9 @@ public interface AnimalRepository extends JpaRepository<Animal, String>
             Pageable pageable
     );
 
-    Page<Animal> findByArrivalDateAndOriginId(
-            LocalDate arrivalDate,
+    Page<Animal> findByRegisteredAtGreaterThanEqualAndRegisteredAtLessThanAndOriginId(
+            LocalDateTime start,
+            LocalDateTime end,
             Long farmId,
             Pageable pageable
     );
