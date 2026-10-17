@@ -69,11 +69,11 @@ Malformed events are rejected without requeueing. Database failures cause the me
 
 ## Limitations
 
-The current implementation uses manually configured RabbitMQ exchanges and queues.
+The Traceability Service automatically declares the RabbitMQ exchange, queue, and binding at startup. However, the required messaging topology must exist before events are published to ensure they are routed correctly.
 
-Publisher confirmations indicate that RabbitMQ has accepted a publication, but do not independently guarantee that a message was routed to a queue.
+Publisher confirmations indicate that RabbitMQ has accepted a publication, but do not guarantee that the message was routed to a queue.
 
-Repeated database failures may also cause repeated delivery attempts. More advanced retry handling and dead-letter queues are not implemented.
+Database failures cause messages to be requeued, which can result in repeated delivery attempts. Retry limits and dead-letter queues are not implemented.
 
 ## Related Documentation
 
