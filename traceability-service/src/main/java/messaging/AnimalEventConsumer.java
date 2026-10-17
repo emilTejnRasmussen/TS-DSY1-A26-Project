@@ -16,8 +16,6 @@ public class AnimalEventConsumer implements AutoCloseable
 {
     private final TraceabilityRepository repository;
 
-    private static final String QUEUE_NAME = "traceability.animal-registered";
-
     private final Connection connection;
     private final Channel channel;
     private final ObjectMapper objectMapper;
@@ -26,14 +24,16 @@ public class AnimalEventConsumer implements AutoCloseable
     {
         this.repository = repository;
 
+        objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("localhost");
 
         connection = factory.newConnection();
         channel = connection.createChannel();
 
-        objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
+        RabbitMqTopology.declare(channel);
     }
 
     public void start() throws IOException
@@ -62,16 +62,20 @@ public class AnimalEventConsumer implements AutoCloseable
             {
                 System.err.println("Invalid event: " + e.getMessage());
                 channel.basicNack(deliveryTag, false, false);
-            }
-            catch (SQLException e)
+            } catch (SQLException e)
             {
                 System.err.println("Database error: " + e.getMessage());
                 channel.basicNack(deliveryTag, false, true);
             }
         };
 
-        channel.basicConsume(QUEUE_NAME, false, deliverCallback, consumerTag -> {
-        });
+        channel.basicConsume(
+                RabbitMqTopology.ANIMAL_REGISTERED_QUEUE,
+                false,
+                deliverCallback,
+                consumerTag -> {
+                }
+        );
 
         System.out.println("Listening for animal registration events...");
     }
