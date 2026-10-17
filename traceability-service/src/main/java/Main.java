@@ -1,6 +1,8 @@
+
 import grpcservice.TraceabilityGrpcService;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import messaging.AnimalEventConsumer;
 import repository.PostgresTraceabilityRepository;
 import repository.TraceabilityRepository;
 
@@ -18,5 +20,16 @@ void main() throws Exception
 
     IO.println("gRPC server started on port 9090");
 
-    server.awaitTermination();
+    try (AnimalEventConsumer consumer = new AnimalEventConsumer(repository))
+    {
+        consumer.start();
+
+        IO.println("RabbitMQ consumer started");
+
+        server.awaitTermination();
+    }
+    finally
+    {
+        server.shutdown();
+    }
 }

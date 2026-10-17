@@ -1,6 +1,7 @@
 package repository;
 
 import database.DatabaseConnection;
+import events.AnimalRegisteredEvent;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -74,4 +75,58 @@ public class PostgresTraceabilityRepository implements TraceabilityRepository
         }
         return productIds;
     }
+
+
+    @Override
+    public void registerAnimal(AnimalRegisteredEvent event) throws SQLException
+    {
+        String insertEventSql = """
+                INSERT INTO processed_event (event_id)
+                VALUES (?)
+                ON CONFLICT (event_id) DO NOTHING
+                """;
+
+        String insertAnimalSql = """
+                INSERT INTO animal (registration_number)
+                VALUES (?)
+                ON CONFLICT (registration_number) DO NOTHING
+                """;
+
+        try (Connection connection = DatabaseConnection.getConnection())
+        {
+            connection.setAutoCommit(false);
+
+            try
+            {
+                try (PreparedStatement statement = connection.prepareStatement(insertEventSql))
+                {
+                    statement.setObject(1, event.eventId());
+
+                    int insertedRows = statement.executeUpdate();
+
+                    if (insertedRows == 0)
+                    {
+                        connection.rollback();
+                        System.out.println("Event already processed: " + event.eventId());
+                        return;
+                    }
+                }
+
+                try (PreparedStatement statement = connection.prepareStatement(insertAnimalSql))
+                {
+                    statement.setString(1, event.registrationNumber());
+                    statement.executeUpdate();
+                }
+
+                connection.commit();
+
+                System.out.println("Registered animal: " + event.registrationNumber());
+            } catch (SQLException e)
+            {
+                connection.rollback();
+                throw e;
+            }
+        }
+    }
+
 }
