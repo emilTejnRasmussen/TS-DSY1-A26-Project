@@ -1,3 +1,7 @@
+-- Sample data for testing Traceability Service gRPC queries.
+-- Run after traceability-schema.sql.
+-- Intended for development and testing only.
+
 INSERT INTO animal (registration_number)
 VALUES ('DK-2026-TEST001'),
        ('DK-2026-TEST002');
