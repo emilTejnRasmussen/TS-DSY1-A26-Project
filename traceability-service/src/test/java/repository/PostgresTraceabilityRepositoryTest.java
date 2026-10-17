@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -14,19 +15,23 @@ class PostgresTraceabilityRepositoryTest
     private final TraceabilityRepository repository = new PostgresTraceabilityRepository();
 
     @Test
-    void productOneShouldContainThreeAnimals() throws SQLException
+    void productOneShouldContainTwoAnimals() throws SQLException
     {
-        List<String> result = repository.findAnimalRegistrationNumbersByProductId(1);
+        List<String> animals =
+                repository.findAnimalRegistrationNumbersByProductId(1);
 
-        assertEquals(List.of("A-1001", "A-1002", "A-1003"), result);
+        assertEquals(
+                Set.of("DK-2026-TEST001", "DK-2026-TEST002"),
+                Set.copyOf(animals)
+        );
     }
 
     @Test
-    void animalA1003ShouldBeInTwoProducts() throws SQLException
+    void animalTest002ShouldBeInTwoProducts() throws SQLException
     {
-        List<Integer> result = repository.findProductIdsByAnimalRegistrationNumber("A-1003");
+        List<Integer> products = repository.findProductIdsByAnimalRegistrationNumber("DK-2026-TEST002");
 
-        assertEquals(List.of(1, 2), result);
+        assertEquals(Set.of(1, 2), Set.copyOf(products));
     }
 
     @Test
