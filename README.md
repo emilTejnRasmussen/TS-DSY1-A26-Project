@@ -47,8 +47,8 @@ The system is developed incrementally through course assignments.
 
 | Assignment | Focus |
 |---|---|
-| Assignment 1–2 | Initial system design and traceability functionality |
-| Assignment 3 | Animal Registration Service, Station 1 frontend, RabbitMQ integration, and transactional outbox |
+| Assignment 1-2 | Initial system design and traceability functionality |
+| Assignment 3   | Animal Registration Service, Station 1 frontend, RabbitMQ integration, and transactional outbox |
 
 Future assignments will extend the system with additional functionality and distributed systems concepts.
 
