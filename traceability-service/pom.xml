@@ -56,6 +56,26 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- RabbitMQ Java client -->
+        <dependency>
+            <groupId>com.rabbitmq</groupId>
+            <artifactId>amqp-client</artifactId>
+            <version>5.26.0</version>
+        </dependency>
+
+        <!-- JSON serialization/deserialization -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.20.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>2.20.1</version>
+        </dependency>
+
         <!-- Read env props -->
         <dependency>
             <groupId>io.github.cdimascio</groupId>

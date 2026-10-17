@@ -1,41 +1,64 @@
-target/
-.idea/
-traceability-service/.env
-!.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
-.kotlin
+# Environment
+.env
+.env.*
+!.env.example
 
-### IntelliJ IDEA ###
-.idea/modules.xml
-.idea/jarRepositories.xml
-.idea/compiler.xml
-.idea/libraries/
-*.iws
+# Logs
+logs/
+
+# Maven / Java
+**/target/
+*.class
+*.log
+
+# IntelliJ IDEA
+.idea/
 *.iml
+*.iws
 *.ipr
 
-### Eclipse ###
-.apt_generated
+# Eclipse / STS
+.settings/
+.project
 .classpath
 .factorypath
-.project
-.settings
+.apt_generated/
 .springBeans
-.sts4-cache
+.sts4-cache/
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### VS Code ###
+# VS Code
 .vscode/
 
-### Mac OS ###
+# NetBeans
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+build/
+.nb-gradle/
+
+# Spring Initializr
+HELP.md
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Frontend (React / Vite / TypeScript)
+frontend/**/node_modules/
+frontend/**/dist/
+frontend/**/dist-ssr/
+frontend/**/.vite/
+frontend/**/.env
+frontend/**/.env.*
+!frontend/**/.env.example
+
+# Logs
+frontend/**/*.log
+frontend/**/npm-debug.log*
+frontend/**/yarn-debug.log*
+frontend/**/pnpm-debug.log*
+
+# Editor / OS
+.DS_Store
+Thumbs.db
