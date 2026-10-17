@@ -1,5 +1,6 @@
 package messaging;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.rabbitmq.client.*;
@@ -8,6 +9,7 @@ import repository.TraceabilityRepository;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
 import java.util.concurrent.TimeoutException;
 
 public class AnimalEventConsumer implements AutoCloseable
@@ -56,9 +58,14 @@ public class AnimalEventConsumer implements AutoCloseable
 
                 repository.registerAnimal(event);
                 channel.basicAck(deliveryTag, false);
-            } catch (Exception e)
+            } catch (JsonProcessingException | IllegalArgumentException e)
             {
-                System.err.println("Failed to process animal event: " + e.getMessage());
+                System.err.println("Invalid event: " + e.getMessage());
+                channel.basicNack(deliveryTag, false, false);
+            }
+            catch (SQLException e)
+            {
+                System.err.println("Database error: " + e.getMessage());
                 channel.basicNack(deliveryTag, false, true);
             }
         };
