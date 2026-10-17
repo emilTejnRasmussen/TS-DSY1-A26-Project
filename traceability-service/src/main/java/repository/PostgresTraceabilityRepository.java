@@ -17,16 +17,16 @@ public class PostgresTraceabilityRepository implements TraceabilityRepository
         String sql = """
                 SELECT DISTINCT a.registration_number
                 FROM animal a
-                JOIN part p ON p.animal_id = a.animal_id
-                JOIN product_tray pt ON pt.tray_id = p.tray_id
-                WHERE pt.product_id = ?
-                ORDER BY a.registration_number
+                JOIN part p ON p.animal_registration_number = a.registration_number
+                JOIN tray_part tp ON tp.part_id = p.part_id
+                JOIN product_tray pt ON pt.tray_id = tp.tray_id
+                WHERE pt.product_id = ?;
                 """;
 
         List<String> registrationNumbers = new ArrayList<>();
 
         try (Connection connection = DatabaseConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql);
+             PreparedStatement statement = connection.prepareStatement(sql)
         )
         {
             statement.setInt(1, productId);
@@ -47,13 +47,12 @@ public class PostgresTraceabilityRepository implements TraceabilityRepository
     public List<Integer> findProductIdsByAnimalRegistrationNumber(String registrationNumber) throws SQLException
     {
         String sql = """
-                SELECT DISTINCT pr.product_id
-                FROM product pr
-                JOIN product_tray pt ON pt.product_id = pr.product_id
-                JOIN part p ON p.tray_id = pt.tray_id
-                JOIN animal a ON a.animal_id = p.animal_id
-                WHERE a.registration_number = ?
-                ORDER BY pr.product_id
+                SELECT DISTINCT pt.product_id
+                FROM animal a
+                JOIN part p ON p.animal_registration_number = a.registration_number
+                JOIN tray_part tp ON tp.part_id = p.part_id
+                JOIN product_tray pt ON pt.tray_id = tp.tray_id
+                WHERE a.registration_number = ?;
                 """;
 
         List<Integer> productIds = new ArrayList<>();
