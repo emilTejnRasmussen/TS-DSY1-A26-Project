@@ -5,11 +5,13 @@ import org.example.animalregistrationservice.dto.animal.AnimalDto;
 import org.example.animalregistrationservice.dto.animal.RegisterAnimalDto;
 import org.example.animalregistrationservice.enitity.Animal;
 import org.example.animalregistrationservice.enitity.Farm;
+import org.example.animalregistrationservice.enitity.OutboxEvent;
 import org.example.animalregistrationservice.exception.AnimalNotFoundException;
 import org.example.animalregistrationservice.exception.FarmNotFoundException;
 import org.example.animalregistrationservice.mapper.AnimalMapper;
 import org.example.animalregistrationservice.repository.AnimalRepository;
 import org.example.animalregistrationservice.repository.FarmRepository;
+import org.example.animalregistrationservice.repository.OutboxEventRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,15 +25,18 @@ public class AnimalService
 {
     private final FarmRepository farmRepository;
     private final AnimalRepository animalRepository;
+    private final OutboxEventRepository outboxEventRepository;
     private final AnimalMapper animalMapper;
 
     public AnimalService(
             FarmRepository farmRepository,
             AnimalRepository animalRepository,
+            OutboxEventRepository outboxEventRepository,
             AnimalMapper animalMapper)
     {
         this.farmRepository = farmRepository;
         this.animalRepository = animalRepository;
+        this.outboxEventRepository = outboxEventRepository;
         this.animalMapper = animalMapper;
     }
 
@@ -47,6 +52,9 @@ public class AnimalService
         animal.generateRegistrationNumber();
 
         Animal savedAnimal = animalRepository.save(animal);
+
+        OutboxEvent event = new OutboxEvent(savedAnimal.getRegistrationNumber());
+        outboxEventRepository.save(event);
 
         return animalMapper.toDto(savedAnimal);
     }

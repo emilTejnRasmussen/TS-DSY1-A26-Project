@@ -6,16 +6,19 @@ import org.example.animalregistrationservice.dto.animal.RegisterAnimalDto;
 import org.example.animalregistrationservice.enitity.Animal;
 import org.example.animalregistrationservice.enitity.AnimalType;
 import org.example.animalregistrationservice.enitity.Farm;
+import org.example.animalregistrationservice.enitity.OutboxEvent;
 import org.example.animalregistrationservice.exception.AnimalNotFoundException;
 import org.example.animalregistrationservice.exception.FarmNotFoundException;
 import org.example.animalregistrationservice.mapper.AnimalMapper;
 import org.example.animalregistrationservice.repository.AnimalRepository;
 import org.example.animalregistrationservice.repository.FarmRepository;
+import org.example.animalregistrationservice.repository.OutboxEventRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
@@ -46,6 +49,9 @@ class AnimalServiceTest
     @Mock
     private AnimalRepository animalRepository;
 
+    @Mock
+    private OutboxEventRepository outboxEventRepository;
+
     private AnimalService animalService;
     private Farm farm;
 
@@ -55,6 +61,7 @@ class AnimalServiceTest
         animalService = new AnimalService(
                 farmRepository,
                 animalRepository,
+                outboxEventRepository,
                 new AnimalMapper()
         );
 
@@ -99,6 +106,12 @@ class AnimalServiceTest
 
             AnimalDto result = animalService.registerAnimal(request);
 
+            ArgumentCaptor<OutboxEvent> eventCaptor = ArgumentCaptor.forClass(OutboxEvent.class);
+
+            verify(outboxEventRepository).save(eventCaptor.capture());
+
+            OutboxEvent event = eventCaptor.getValue();
+
             LocalDateTime after = LocalDateTime.now();
 
             assertAll("Registered animal",
@@ -111,7 +124,12 @@ class AnimalServiceTest
                     () -> assertNotNull(result.registeredAt()),
                     () -> assertFalse(result.registeredAt().isBefore(before)),
                     () -> assertFalse(result.registeredAt().isAfter(after)),
-                    () -> verify(animalRepository).save(any(Animal.class))
+                    () -> verify(animalRepository).save(any(Animal.class)),
+                    () -> assertEquals(result.registrationNumber(), event.getRegistrationNumber()),
+                    () -> assertEquals("AnimalRegistered", event.getEventType()),
+                    () -> assertNotNull(event.getId()),
+                    () -> assertNotNull(event.getOccurredAt()),
+                    () -> assertFalse(event.isPublished())
             );
         }
 
@@ -133,6 +151,9 @@ class AnimalServiceTest
 
             AnimalDto first = animalService.registerAnimal(request);
             AnimalDto second = animalService.registerAnimal(request);
+
+            verify(outboxEventRepository, times(2))
+                    .save(any(OutboxEvent.class));
 
             assertAll("Unique registrations",
                     () -> assertNotEquals(
@@ -156,6 +177,8 @@ class AnimalServiceTest
 
             when(farmRepository.findById(999L))
                     .thenReturn(Optional.empty());
+
+            verify(outboxEventRepository, never()).save(any());
 
             assertAll(
                     () -> assertThrows(
