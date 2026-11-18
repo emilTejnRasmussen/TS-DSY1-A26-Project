@@ -15,6 +15,7 @@
     <modules>
         <module>traceability-service</module>
         <module>animal-registration-service</module>
+        <module>animal-processing-service</module>
     </modules>
 
 </project>
