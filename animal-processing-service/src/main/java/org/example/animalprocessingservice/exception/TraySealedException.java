@@ -2,8 +2,8 @@ package org.example.animalprocessingservice.exception;
 
 public class TraySealedException extends RuntimeException
 {
-    public TraySealedException()
+    public TraySealedException(long trayId)
     {
-        super("Cannot add part to a sealed tray.");
+        super("Tray with ID " + trayId + " is already sealed.");
     }
 }

@@ -108,6 +108,19 @@ public class TrayService
         return trayMapper.toDto(tray);
     }
 
+    @Transactional
+    public TrayResponse sealTray(long trayId)
+    {
+        Tray tray = getTrayByIdForUpdate(trayId);
+
+        ensureTrayIsOpen(tray);
+        ensureTrayIsNotEmpty(tray);
+
+        tray.setStatus(TrayStatus.SEALED);
+
+        return trayMapper.toDto(tray);
+    }
+
     private Tray getTrayById(long trayId){
         return trayRepo.findById(trayId)
                 .orElseThrow(() -> new TrayNotFoundException(trayId));
@@ -135,7 +148,7 @@ public class TrayService
     private void ensureTrayIsOpen(Tray tray){
         if (tray.getStatus() != TrayStatus.OPEN)
         {
-            throw new TraySealedException();
+            throw new TraySealedException(tray.getId());
         }
     }
 
@@ -162,6 +175,14 @@ public class TrayService
                 !Objects.equals(part.getTray().getId(), tray.getId()))
         {
             throw new PartNotInTrayException();
+        }
+    }
+
+    private void ensureTrayIsNotEmpty(Tray tray)
+    {
+        if (tray.getParts().isEmpty())
+        {
+            throw new TrayEmptyException(tray.getId());
         }
     }
 }
