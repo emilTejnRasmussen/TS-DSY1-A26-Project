@@ -32,4 +32,11 @@ public class Tray
 
     @OneToMany(mappedBy = "tray")
     private List<Part> parts = new ArrayList<>();
+
+    public BigDecimal getCurrentWeight()
+    {
+        return parts.stream()
+                .map(Part::getWeight)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
 }
