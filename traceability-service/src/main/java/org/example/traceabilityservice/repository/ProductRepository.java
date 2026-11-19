@@ -10,6 +10,10 @@ import java.util.Optional;
 
 public interface ProductRepository extends JpaRepository<Product, Long>
 {
+    @Modifying(flushAutomatically = true)
+    @Query(value = "INSERT INTO product (product_id) VALUES (:id) ON CONFLICT DO NOTHING", nativeQuery = true)
+    int insertIfAbsent(@Param("id") Long id);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM Product p WHERE p.id = :id")
     Optional<Product> findByIdForUpdate(@Param("id") Long id);

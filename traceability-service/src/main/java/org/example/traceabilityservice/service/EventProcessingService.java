@@ -147,64 +147,35 @@ public class EventProcessingService
 
     private boolean beginEvent(UUID eventId)
     {
-        if (processedEventRepo.existsById(eventId))
-        {
-            return false;
-        }
-
-        entityManager.persist(new ProcessedEvent(eventId));
-        entityManager.flush();
-        return true;
+        return processedEventRepo.insertIfAbsent(eventId) == 1;
     }
 
     private Animal getAnimal(String registrationNumber)
     {
-        return animalRepo.findById(registrationNumber).orElseGet(() -> {
-            Animal animal = new Animal();
-            animal.setRegistrationNumber(registrationNumber);
-            entityManager.persist(animal);
-            return animal;
-        });
+        animalRepo.insertIfAbsent(registrationNumber);
+        return animalRepo.findById(registrationNumber).orElseThrow();
     }
 
     private Tray getTray(Long id)
     {
-        return trayRepo.findByIdForUpdate(id).orElseGet(() -> {
-            Tray tray = new Tray();
-            tray.setId(id);
-            entityManager.persist(tray);
-            return tray;
-        });
+        trayRepo.insertIfAbsent(id);
+        return trayRepo.findByIdForUpdate(id).orElseThrow();
     }
 
     private Product getProduct(Long id)
     {
-        return productRepo.findByIdForUpdate(id).orElseGet(() -> {
-            Product product = new Product();
-            product.setId(id);
-            entityManager.persist(product);
-            return product;
-        });
+        productRepo.insertIfAbsent(id);
+        return productRepo.findByIdForUpdate(id).orElseThrow();
     }
 
     private Part getPart(Long id, Animal animal, PartType type, BigDecimal weight)
     {
         // Station 2 can publish a weight before PostgreSQL rounds NUMERIC(10,2).
         BigDecimal normalizedWeight = weight.setScale(2, RoundingMode.HALF_UP);
-        Optional<Part> existing = partRepo.findByIdForUpdate(id);
-        Part part;
-        if (existing.isPresent())
-        {
-            part = existing.get();
-            // A collection may have loaded this part before its row lock was acquired.
-            entityManager.refresh(part, LockModeType.PESSIMISTIC_WRITE);
-        } else
-        {
-            part = new Part();
-            part.setId(id);
-            part.setAnimal(animal);
-            entityManager.persist(part);
-        }
+        partRepo.insertIfAbsent(id, animal.getRegistrationNumber());
+        Part part = partRepo.findByIdForUpdate(id).orElseThrow();
+        // A collection may have loaded this part before its row lock was acquired.
+        entityManager.refresh(part, LockModeType.PESSIMISTIC_WRITE);
 
         require(part.getAnimal().getRegistrationNumber().equals(animal.getRegistrationNumber()),
                 "Part " + id + " has a conflicting animal");

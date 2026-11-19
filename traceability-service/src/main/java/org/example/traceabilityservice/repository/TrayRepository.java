@@ -9,6 +9,10 @@ import java.util.Optional;
 
 public interface TrayRepository extends JpaRepository<Tray, Long>
 {
+    @Modifying(flushAutomatically = true)
+    @Query(value = "INSERT INTO tray (tray_id) VALUES (:id) ON CONFLICT DO NOTHING", nativeQuery = true)
+    int insertIfAbsent(@Param("id") Long id);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT t FROM Tray t WHERE t.id = :id")
     Optional<Tray> findByIdForUpdate(@Param("id") Long id);

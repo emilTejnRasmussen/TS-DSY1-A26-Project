@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(properties = {
         "spring.config.import=",
-        "spring.datasource.url=${TRACEABILITY_TEST_DB_URL:jdbc:h2:mem:traceability-grpc}",
+        "spring.datasource.url=${TRACEABILITY_TEST_DB_URL:jdbc:h2:mem:traceability-grpc;MODE=PostgreSQL}",
         "spring.datasource.username=${TRACEABILITY_TEST_DB_USERNAME:sa}",
         "spring.datasource.password=${TRACEABILITY_TEST_DB_PASSWORD:}",
         "spring.datasource.driver-class-name=${TRACEABILITY_TEST_DB_DRIVER:org.h2.Driver}",
