@@ -9,6 +9,7 @@ import org.example.animalprocessingservice.entity.Tray;
 import org.example.animalprocessingservice.entity.TrayStatus;
 import org.example.animalprocessingservice.exception.*;
 import org.example.animalprocessingservice.mapper.TrayMapper;
+import org.example.animalprocessingservice.messaging.OutboxService;
 import org.example.animalprocessingservice.repository.PartRepository;
 import org.example.animalprocessingservice.repository.TrayRepository;
 import org.springframework.data.domain.Page;
@@ -27,6 +28,8 @@ public class TrayService
     private final TrayRepository trayRepo;
     private final PartRepository partRepo;
     private final TrayMapper trayMapper;
+
+    private final OutboxService outboxService;
 
     @Transactional
     public TrayResponse createTray(CreateTrayRequest request)
@@ -119,6 +122,8 @@ public class TrayService
 
         tray.setStatus(TrayStatus.SEALED);
         tray.setSealedAt(LocalDateTime.now());
+
+        outboxService.recordTraySealed(tray);
 
         return trayMapper.toDto(tray);
     }

@@ -9,6 +9,7 @@ import org.example.animalprocessingservice.entity.PartType;
 import org.example.animalprocessingservice.exception.AnimalReferencenotFoundException;
 import org.example.animalprocessingservice.exception.PartNotFoundException;
 import org.example.animalprocessingservice.mapper.PartMapper;
+import org.example.animalprocessingservice.messaging.OutboxService;
 import org.example.animalprocessingservice.repository.AnimalReferenceRepository;
 import org.example.animalprocessingservice.repository.PartRepository;
 import org.springframework.data.domain.Page;
@@ -22,6 +23,8 @@ public class PartService
 {
     private final PartRepository partRepo;
     private final AnimalReferenceRepository animalReferenceRepo;
+
+    private final OutboxService outboxService;
 
     private final PartMapper partMapper;
 
@@ -38,6 +41,8 @@ public class PartService
         part.setWeight(request.weight());
 
         Part savedPart = partRepo.save(part);
+
+        outboxService.recordPartRegistered(savedPart);
 
         return partMapper.toDto(savedPart);
     }
