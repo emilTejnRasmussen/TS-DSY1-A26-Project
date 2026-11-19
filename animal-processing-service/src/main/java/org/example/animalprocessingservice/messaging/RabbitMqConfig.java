@@ -11,6 +11,9 @@ public class RabbitMqConfig
     public static final String ANIMAL_REGISTERED_KEY = "animal.registered";
     public static final String ANIMAL_REGISTERED_QUEUE = "processing.animal-registered";
 
+    public static final String PART_REGISTERED_KEY = "part.registered";
+    public static final String TRAY_SEALED_KEY = "tray.sealed";
+
     @Bean
     public TopicExchange eventsExchange()
     {
