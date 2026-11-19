@@ -4,6 +4,7 @@ import org.example.animalprocessingservice.entity.PartType;
 import org.example.animalprocessingservice.entity.TrayStatus;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public record TrayResponse(
@@ -12,5 +13,7 @@ public record TrayResponse(
         TrayStatus status,
         BigDecimal maxWeight,
         BigDecimal currentWeight,
-        List<Long> partIds
+        List<Long> partIds,
+        LocalDateTime createdAt,
+        LocalDateTime sealedAt
 ){}

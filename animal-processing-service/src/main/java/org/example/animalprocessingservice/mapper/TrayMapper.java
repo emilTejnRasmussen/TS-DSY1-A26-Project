@@ -18,7 +18,9 @@ public class TrayMapper
                 tray.getParts()
                         .stream()
                         .map(Part::getId)
-                        .toList()
+                        .toList(),
+                tray.getCreatedAt(),
+                tray.getSealedAt()
         );
     }
 }
