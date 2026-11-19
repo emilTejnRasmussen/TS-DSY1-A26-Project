@@ -1,8 +1,8 @@
 package org.example.animalprocessingservice.service;
 
 import lombok.RequiredArgsConstructor;
-import org.example.animalprocessingservice.dto.PartDto;
-import org.example.animalprocessingservice.dto.RegisterPartDto;
+import org.example.animalprocessingservice.dto.PartResponse;
+import org.example.animalprocessingservice.dto.RegisterPartRequest;
 import org.example.animalprocessingservice.entity.AnimalReference;
 import org.example.animalprocessingservice.entity.Part;
 import org.example.animalprocessingservice.entity.PartType;
@@ -26,7 +26,7 @@ public class PartService
     private final PartMapper partMapper;
 
     @Transactional
-    public PartDto registerPart(RegisterPartDto request)
+    public PartResponse registerPart(RegisterPartRequest request)
     {
         AnimalReference animalReference = animalReferenceRepo.findById(request.animalRegistrationNumber())
                 .orElseThrow(() -> new AnimalReferencenotFoundException(request.animalRegistrationNumber()));
@@ -43,7 +43,7 @@ public class PartService
     }
 
     @Transactional(readOnly = true)
-    public PartDto getPart(Long id)
+    public PartResponse getPart(Long id)
     {
         Part part = partRepo.findById(id)
                 .orElseThrow(() -> new PartNotFoundException(id));
@@ -52,7 +52,7 @@ public class PartService
     }
 
     @Transactional(readOnly = true)
-    public Page<PartDto> getParts(
+    public Page<PartResponse> getParts(
             String animalRegistrationNumber,
             PartType type,
             Pageable pageable)

@@ -7,7 +7,7 @@ import org.example.animalprocessingservice.entity.PartType;
 
 import java.math.BigDecimal;
 
-public record RegisterPartDto(
+public record RegisterPartRequest(
         @NotBlank
         String animalRegistrationNumber,
 

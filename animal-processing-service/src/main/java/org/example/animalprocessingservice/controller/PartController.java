@@ -2,8 +2,8 @@ package org.example.animalprocessingservice.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.example.animalprocessingservice.dto.PartDto;
-import org.example.animalprocessingservice.dto.RegisterPartDto;
+import org.example.animalprocessingservice.dto.PartResponse;
+import org.example.animalprocessingservice.dto.RegisterPartRequest;
 import org.example.animalprocessingservice.entity.PartType;
 import org.example.animalprocessingservice.service.PartService;
 import org.springframework.data.domain.Page;
@@ -22,23 +22,23 @@ public class PartController
     private final PartService partService;
 
     @PostMapping
-    public ResponseEntity<PartDto> registerPart(@Valid @RequestBody RegisterPartDto request)
+    public ResponseEntity<PartResponse> registerPart(@Valid @RequestBody RegisterPartRequest request)
     {
-        PartDto response = partService.registerPart(request);
+        PartResponse response = partService.registerPart(request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/{partId}")
-    public ResponseEntity<PartDto> getPart(@PathVariable Long partId)
+    public ResponseEntity<PartResponse> getPart(@PathVariable Long partId)
     {
-        PartDto response = partService.getPart(partId);
+        PartResponse response = partService.getPart(partId);
 
         return ResponseEntity.ok(response);
     }
 
     @GetMapping
-    public ResponseEntity<Page<PartDto>> getParts(
+    public ResponseEntity<Page<PartResponse>> getParts(
             @RequestParam(required = false) String animalRegistrationNumber,
             @RequestParam(required = false) PartType partType,
             @PageableDefault(
@@ -49,7 +49,7 @@ public class PartController
             Pageable pageable
     )
     {
-        Page<PartDto> response = partService.getParts(
+        Page<PartResponse> response = partService.getParts(
                 animalRegistrationNumber,
                 partType,
                 pageable

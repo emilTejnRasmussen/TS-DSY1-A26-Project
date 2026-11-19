@@ -4,7 +4,7 @@ import org.example.animalprocessingservice.entity.PartType;
 
 import java.math.BigDecimal;
 
-public record PartDto(
+public record PartResponse(
         Long id,
         BigDecimal weight,
         PartType type,
