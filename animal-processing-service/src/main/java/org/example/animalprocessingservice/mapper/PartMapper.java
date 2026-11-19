@@ -9,12 +9,16 @@ public class PartMapper
 {
 
     public PartDto toDto(Part part){
+        Long trayId = part.getTray() != null
+                ? part.getTray().getId()
+                : null;
+
         return new PartDto(
                 part.getId(),
                 part.getWeight(),
                 part.getType(),
                 part.getAnimalReference().getRegistrationNumber(),
-                part.getTray().getId()
+                trayId
         );
     }
 
