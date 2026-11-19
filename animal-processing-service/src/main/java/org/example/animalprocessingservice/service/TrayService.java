@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -90,6 +91,23 @@ public class TrayService
         return trayMapper.toDto(tray);
     }
 
+    @Transactional
+    public TrayResponse removePart(long trayId, long partId)
+    {
+        Tray tray = getTrayByIdForUpdate(trayId);
+
+        ensureTrayIsOpen(tray);
+
+        Part part = getPartByIdForUpdate(partId);
+
+        ensurePartBelongsToTray(part, tray);
+
+        tray.getParts().remove(part);
+        part.setTray(null);
+
+        return trayMapper.toDto(tray);
+    }
+
     private Tray getTrayById(long trayId){
         return trayRepo.findById(trayId)
                 .orElseThrow(() -> new TrayNotFoundException(trayId));
@@ -135,6 +153,15 @@ public class TrayService
 
         if (newWeight.compareTo(tray.getMaxWeight()) > 0){
             throw new TrayCapacityExceededException();
+        }
+    }
+
+    private void ensurePartBelongsToTray(Part part, Tray tray)
+    {
+        if (part.getTray() == null ||
+                !Objects.equals(part.getTray().getId(), tray.getId()))
+        {
+            throw new PartNotInTrayException();
         }
     }
 }
