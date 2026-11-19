@@ -1,4 +1,4 @@
-package events;
+package org.example.traceabilityservice.messaging;
 
 import java.time.Instant;
 import java.util.UUID;
