@@ -4,7 +4,7 @@
 
 The Animal Registration Service publishes an `AnimalRegistered` event whenever a new animal is registered.
 
-Events are sent through RabbitMQ and consumed by the Traceability Service, which stores the animal's registration number in its own database.
+Animal Processing stores the animal's registration number as a local reference so it can register parts without calling Station 1. Traceability stores its own copy for tracing and recall.
 
 This allows the services to communicate asynchronously without depending on each other being available at the same time.
 
@@ -33,10 +33,11 @@ This allows the services to communicate asynchronously without depending on each
 | Exchange | `slaughterhouse.events` |
 | Exchange type | `topic` |
 | Routing key | `animal.registered` |
-| Queue | `traceability.animal-registered` |
+| Processing queue | `processing.animal-registered` |
+| Traceability queue | `traceability.animal-registered` |
 | Message format | JSON |
 
-The exchange routes events to the Traceability queue using the routing key.
+Each service receives its own copy through its own durable queue.
 
 ## Transactional Outbox
 
@@ -57,24 +58,22 @@ This allows animal registration to continue while the message broker is unavaila
 
 ## Event Consumption
 
-The Traceability Service listens to the `traceability.animal-registered` queue.
+Processing skips registration numbers it already knows. Traceability records the event ID and inserts or reuses the animal reference in the same transaction.
 
-When an event is received, the consumer inserts the animal's registration number into the `animal` table and records the event ID in `processed_event`.
-
-Both inserts are performed in a single database transaction.
+The animal may already exist in Traceability because a part, tray, or product event arrived first. Atomic inserts allow concurrent events to reference the same previously unknown animal.
 
 The event ID is used to detect duplicate deliveries. If an event has already been processed, the consumer skips the database changes and acknowledges the message.
 
-Malformed events are rejected without requeueing. Database failures cause the message to be requeued for another attempt.
+Invalid Traceability events are retained in `failed_event` after rolling back their changes. The delivery is acknowledged after the failure record is saved. Database failures remain retryable.
 
 ## Limitations
 
-The Traceability Service automatically declares the RabbitMQ exchange, queue, and binding at startup. However, the required messaging topology must exist before events are published to ensure they are routed correctly.
+Processing and Traceability declare their queues and bindings at startup. The required exchange, queues, and bindings must exist before publishing.
 
-Publisher confirmations indicate that RabbitMQ has accepted a publication, but do not guarantee that the message was routed to a queue.
+Station 1 checks publisher confirmations but does not check returned messages. Its confirmation alone does not prove that the message reached a queue.
 
 Database failures cause messages to be requeued, which can result in repeated delivery attempts. Retry limits and dead-letter queues are not implemented.
 
 ## Related Documentation
 
-See the [Animal Registration Sequence Diagram](../sequences/animal-registration.svg) for the complete registration and event-processing flow.
+See the [messaging overview](README.md) for all event routes and shared delivery behavior, and the [Animal Registration Sequence Diagram](../sequences/animal-registration.svg) for the registration flow.
